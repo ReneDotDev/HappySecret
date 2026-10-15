@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HappySecret — Share a secret. Leave no loose ends.</title>
+  <meta name="description" content="Share encrypted, expiring secrets with a link. No account. Encryption in your browser. Open source and agent friendly.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="Agent instructions">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="site-header wrap">
+    <a class="brand" href="/" aria-label="HappySecret home"><img src="/favicon.svg" width="31" height="31" alt="">happysecret<span class="brand-dot">.</span></a>
+    <nav aria-label="Main navigation"><a href="/api">For developers <span aria-hidden="true">↗</span></a><a class="source-link" href="https://github.com/ReneDotDev/HappySecret" target="_blank" rel="noopener noreferrer">Source code <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main class="wrap">
+    <section class="intro" id="intro"><span class="eyebrow"><span class="status-dot"></span> A LITTLE PRIVACY GOES A LONG WAY</span><h1>Share a secret.<br><span>Leave no loose ends.</span></h1><p>A password, a private note, a little something sensitive.<br class="desktop-break"> Encrypt it here. Send a link. Let it disappear.</p></section>
+    <section class="secret-card" aria-label="Create or reveal a secret">
+      <form id="create-form">
+        <div class="card-heading"><h2>Your secret stays yours</h2><span class="small-label">ENCRYPTED IN YOUR BROWSER</span></div>
+        <label for="message" class="sr-only">Your secret</label>
+        <div class="textarea-wrap"><textarea id="message" placeholder="Put something private here…" rows="7" required spellcheck="false" autocomplete="off" autocapitalize="off" maxlength="32768" aria-describedby="size-note" dir="auto"></textarea><div class="textarea-footer"><span id="size-note">Only encrypted text leaves this page.</span><span id="byte-count">0 / 32 KiB</span></div></div>
+        <div class="options"><div class="field"><label for="expiry">Expires after</label><select id="expiry"><option value="3600">1 hour</option><option value="86400" selected>1 day</option><option value="259200">3 days</option><option value="604740">7 days</option><option value="custom">Choose a date & time</option></select></div><div class="field"><label for="views">Maximum views</label><select id="views"><option value="1" selected>1 view · then gone</option><option value="3">3 views</option><option value="5">5 views</option><option value="10">10 views</option><option value="25">25 views</option><option value="100">100 views</option></select></div></div>
+        <div class="field custom-expiry" id="custom-expiry" hidden><label for="expiry-date">Expiration date & time <span class="muted">(your local time, within 7 days)</span></label><input id="expiry-date" type="datetime-local"></div>
+        <div class="submit-row"><span class="privacy-note"><svg width="15" height="17" viewBox="0 0 20 22" fill="none" aria-hidden="true"><path d="M5 9V6a5 5 0 0 1 10 0v3M3 9h14v11H3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>No accounts. No peeking.</span><button class="button primary" type="submit" id="create-button">Create a secret link <span aria-hidden="true">↗</span></button></div>
+      </form>
+      <section id="created-panel" hidden aria-labelledby="created-title"><span class="panel-icon" aria-hidden="true">✓</span><span class="eyebrow">SEALED & READY TO SEND</span><h2 id="created-title" class="panel-title">A little link. A private delivery.</h2><p>Anyone with this complete link can reveal your secret.<br>Share it with someone you trust.</p><label for="share-link" class="input-label">Your secret link</label><div class="copy-row"><input id="share-link" type="text" readonly spellcheck="false" autocomplete="off"><button type="button" class="button primary" id="copy-link">Copy link</button></div><p class="detail-note" id="created-details"></p><button type="button" class="text-button" id="another">Create another secret <span aria-hidden="true">↗</span></button></section>
+      <section id="reveal-panel" hidden aria-labelledby="reveal-title"><span class="panel-icon" aria-hidden="true">↘</span><span class="eyebrow">SOMETHING JUST FOR YOU</span><h2 id="reveal-title" class="panel-title">You’ve been let in on a secret.</h2><p id="reveal-description">Opening this page hasn’t used a view.<br>Reveal it when you’re ready. It may only be available once.</p><button type="button" class="button primary reveal-button" id="reveal-button">Reveal the secret <span aria-hidden="true">↗</span></button><div id="revealed-content" hidden><label for="revealed-message" class="input-label">Your decrypted secret</label><textarea id="revealed-message" rows="6" readonly spellcheck="false" autocomplete="off" dir="auto"></textarea><div class="reveal-actions"><p class="detail-note" id="remaining-details"></p><button type="button" class="button secondary" id="copy-secret">Copy secret</button></div><p class="detail-note">Save what you need before leaving. This page won’t keep a copy.</p></div><a class="text-button" href="/">Send a secret of your own <span aria-hidden="true">↗</span></a></section>
+      <p id="feedback" class="feedback" role="status" aria-live="polite" hidden></p>
+    </section>
+    <section class="trust-row" aria-label="How it works"><div><span class="step-number">01</span><h3>Sealed on your device</h3><p>Your browser encrypts the secret.<br>We only store the ciphertext.</p></div><div><span class="step-number">02</span><h3>A link holds the key</h3><p>The decryption key stays in the link.<br>It’s never sent to our server.</p></div><div><span class="step-number">03</span><h3>Here for a little while</h3><p>Expires on your terms. Removed after<br>its last view or expiration.</p></div></section>
+    <section class="api-banner"><div><span class="eyebrow">FOR SCRIPTS, AGENTS & CURIOUS MINDS</span><h2>Secrets travel by API, too.</h2><p>Encrypt locally. Upload ciphertext. Share a predictable link.<br>No API key or account needed.</p><a class="text-button" href="/api">Explore the API <span aria-hidden="true">→</span></a></div><div class="terminal" aria-label="Example command"><div class="terminal-header"><span></span><span></span><span></span><span class="terminal-label">YOUR TERMINAL</span></div><pre><span class="code-comment"># Encrypt here. Share anywhere.</span>
+<span class="code-prompt">$</span> node happysecret.mjs create \
+    --expires 1h --views 1 &lt; secret.txt
+
+<span class="code-result">https://…/s/&lt;id&gt;#&lt;key&gt;</span></pre><a href="/llms.txt">Agent discovery: /llms.txt <span aria-hidden="true">↗</span></a></div></section>
+  </main>
+  <footer class="wrap site-footer"><span>A small tool for things worth keeping private.</span><div><a href="/security">How privacy works</a><a href="https://github.com/ReneDotDev/HappySecret" target="_blank" rel="noopener noreferrer">Open source · MIT <span aria-hidden="true">↗</span></a></div></footer>
+</body></html>

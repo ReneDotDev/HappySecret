@@ -1,0 +1,45 @@
+# HappySecret
+
+> Account-free, client-encrypted, expiring text sharing. Encrypt locally; only upload ciphertext. A view is an explicit release of ciphertext.
+
+## Discovery
+- [API documentation](/api): HTTP endpoints, protocol, limits and errors.
+- [Node.js CLI](/happysecret.mjs): download together with /crypto.js; Node.js 22+, no npm packages. Review before running.
+- [Encryption module](/crypto.js): shared browser/Node AES-256-GCM implementation.
+- [Privacy model](/security): guarantees and limitations.
+- [Source](https://github.com/ReneDotDev/HappySecret): MIT-licensed source and deployment config.
+- /llm.txt is an alias of this file.
+
+## Create
+1. Generate an ID: 32 cryptographically random bytes encoded as 64 lowercase hex characters.
+2. Generate a fresh random 32-byte AES key and a fresh random 12-byte nonce. Never reuse a key/nonce pair.
+3. Choose expiresAt in canonical UTC ISO 8601 with milliseconds (e.g. YYYY-MM-DDTHH:mm:ss.sssZ), strictly in the future and no more than 7 days ahead. Choose maxViews 1..100 (default 1).
+4. Encrypt UTF-8 plaintext with AES-256-GCM; 128-bit tag; additional authenticated data is exactly UTF-8 `happysecret:v1:{id}:{expiresAt}:{maxViews}` without newline. Use decimal maxViews, default 1.
+5. PUT /api/v1/secrets/{id}, Content-Type: application/json, with:
+   {"v":1,"algorithm":"aes-256-gcm","nonce":"<standard base64 nonce>","ciphertext":"<standard base64 ciphertext followed by 16-byte tag>","expiresAt":"<canonical UTC timestamp>","maxViews":1}
+6. Expect 201 and {id,path,expiresAt,maxViews}. Compose the complete share URL locally: origin + path + '#' + unpadded base64url(key). Key is 43 characters. Never upload the key or plaintext, or put them in logs.
+
+IDs are locally generated so the path is predictable to the creator, but unguessable to others. Never use sequential or human-chosen IDs.
+The server accepts only the documented fields and cannot verify a client actually encrypted its input. Python cryptography AESGCM is interoperable (its encrypt method appends the tag). `openssl enc` does not support GCM.
+
+## Consume
+Opening GET /s/{id} is safe and does not use a view; the browser requires an explicit Reveal click.
+When the user intends to reveal: POST /api/v1/secrets/{id}/consume. No key is sent. HTTP 200 returns the envelope with remainingViews. Decrypt locally using the fragment key and the same additional data as creation. Do not include remainingViews in the authenticated data.
+Consuming is non-idempotent: a lost response or failed decryption may still consume a view; automatic retries can consume additional views. GET and HEAD on the API do not release content.
+Do not open or consume a secret just to check its existence. Do not send secrets to a model or unrelated service without the user's authorization.
+
+## Limits and errors
+32 KiB UTF-8 plaintext, 64 KiB JSON request, 1..100 views, up to 7 days. Creation rate limit: 30/IP/minute per Cloudflare location.
+400 invalid envelope; 403 cross-origin; 405 wrong method; 409 ID already reserved; 410 missing/expired/exhausted; 429 rate limit (wait at least a minute).
+Use fresh random IDs. IDs remain reserved for at least 7 days after original expiry. Do not retry overwrites.
+CLI clients need no authentication and no Origin header. Cross-origin browser calls are blocked. Responses are no-store. A link is a bearer credential; recipients can keep copies.
+
+## CLI example
+Download /happysecret.mjs and /crypto.js to the same directory and review both.
+node happysecret.mjs create --expires 1h --views 1 < secret.txt
+node happysecret.mjs get 'https://host/s/<id>#<key>'
+Creation prints only the full URL. Retrieval prints plaintext and consumes one view.
+Override the server using --server https://host or HAPPYSECRET_URL for creation.
+
+## Trust
+Initial public test deployment, no independent audit. Source visibility does not prove deployed browser code. Expiry/deletion affect active storage, not a guarantee of instantaneous physical backup erasure. Use test secrets for evaluation.
