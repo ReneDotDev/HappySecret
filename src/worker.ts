@@ -102,6 +102,7 @@ export default {
     }
     if (!['GET', 'HEAD'].includes(request.method)) return json({ error: 'Method not allowed.' }, 405);
     const assetUrl = new URL(request.url);
+    if (url.pathname === '/') assetUrl.pathname = '/index.html';
     if (/^\/s\/[a-f0-9]{64}$/.test(url.pathname)) assetUrl.pathname = '/index.html';
     if (url.pathname === '/llm.txt') assetUrl.pathname = '/llms.txt';
     if (url.pathname === '/api' || url.pathname === '/api/') assetUrl.pathname = '/api.html';
